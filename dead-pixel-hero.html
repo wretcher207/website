@@ -1,0 +1,443 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dead Pixel Design</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Darker+Grotesque:wght@300;400;500;700;900&family=Space+Mono:ital,wght@0,400;0,700;1,400&display=swap');
+
+  * {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+  }
+
+  :root {
+    --bg: #0a0a0c;
+    --fg: #e8e4df;
+    --accent: #b8a9c9;
+    --accent-warm: #c9a9a0;
+    --muted: #5a5565;
+    --grain-opacity: 0.08;
+  }
+
+  html, body {
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    background: var(--bg);
+    color: var(--fg);
+    font-family: 'Darker Grotesque', sans-serif;
+  }
+
+  /* ── Film grain overlay ── */
+  .grain {
+    position: fixed;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    pointer-events: none;
+    z-index: 100;
+    opacity: var(--grain-opacity);
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
+    animation: grainShift 0.5s steps(3) infinite;
+  }
+
+  @keyframes grainShift {
+    0% { transform: translate(0, 0); }
+    33% { transform: translate(-2px, 1px); }
+    66% { transform: translate(1px, -2px); }
+    100% { transform: translate(0, 0); }
+  }
+
+  /* ── Scanline effect ── */
+  .scanlines {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: 99;
+    background: repeating-linear-gradient(
+      to bottom,
+      transparent,
+      transparent 2px,
+      rgba(0, 0, 0, 0.03) 2px,
+      rgba(0, 0, 0, 0.03) 4px
+    );
+  }
+
+  /* ── Haze / light leak backgrounds ── */
+  .haze {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 0;
+    overflow: hidden;
+  }
+
+  .haze-blob {
+    position: absolute;
+    border-radius: 50%;
+    filter: blur(120px);
+    opacity: 0;
+    animation: hazeFloat 12s ease-in-out infinite;
+  }
+
+  .haze-blob:nth-child(1) {
+    width: 600px;
+    height: 600px;
+    background: radial-gradient(circle, rgba(184, 169, 201, 0.15), transparent 70%);
+    top: -10%;
+    left: -10%;
+    animation-delay: 0s;
+  }
+
+  .haze-blob:nth-child(2) {
+    width: 500px;
+    height: 500px;
+    background: radial-gradient(circle, rgba(201, 169, 160, 0.12), transparent 70%);
+    bottom: -15%;
+    right: -5%;
+    animation-delay: -4s;
+    animation-duration: 15s;
+  }
+
+  .haze-blob:nth-child(3) {
+    width: 400px;
+    height: 400px;
+    background: radial-gradient(circle, rgba(140, 130, 170, 0.1), transparent 70%);
+    top: 40%;
+    left: 50%;
+    animation-delay: -8s;
+    animation-duration: 18s;
+  }
+
+  @keyframes hazeFloat {
+    0%, 100% {
+      opacity: 0.4;
+      transform: translate(0, 0) scale(1);
+    }
+    25% {
+      opacity: 0.7;
+      transform: translate(30px, -20px) scale(1.1);
+    }
+    50% {
+      opacity: 0.5;
+      transform: translate(-20px, 30px) scale(0.95);
+    }
+    75% {
+      opacity: 0.8;
+      transform: translate(15px, 15px) scale(1.05);
+    }
+  }
+
+  /* ── Dead pixel scatter ── */
+  .dead-pixels {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 1;
+    pointer-events: none;
+  }
+
+  .dead-pixel {
+    position: absolute;
+    width: 2px;
+    height: 2px;
+    background: var(--accent);
+    opacity: 0;
+    animation: pixelFlicker 4s ease-in-out infinite;
+  }
+
+  .dead-pixel:nth-child(1) { top: 12%; left: 8%; animation-delay: 0s; }
+  .dead-pixel:nth-child(2) { top: 34%; left: 78%; animation-delay: 1.2s; }
+  .dead-pixel:nth-child(3) { top: 67%; left: 23%; animation-delay: 2.8s; }
+  .dead-pixel:nth-child(4) { top: 89%; left: 91%; animation-delay: 0.6s; }
+  .dead-pixel:nth-child(5) { top: 45%; left: 55%; animation-delay: 3.5s; }
+  .dead-pixel:nth-child(6) { top: 22%; left: 42%; animation-delay: 1.8s; }
+  .dead-pixel:nth-child(7) { top: 78%; left: 67%; animation-delay: 4.1s; }
+  .dead-pixel:nth-child(8) { top: 5%; left: 85%; animation-delay: 2.3s; }
+  .dead-pixel:nth-child(9) { top: 55%; left: 12%; animation-delay: 0.9s; }
+  .dead-pixel:nth-child(10) { top: 91%; left: 35%; animation-delay: 3.0s; }
+  .dead-pixel:nth-child(11) { top: 38%; left: 95%; animation-delay: 1.5s; }
+  .dead-pixel:nth-child(12) { top: 72%; left: 48%; animation-delay: 4.7s; }
+
+  @keyframes pixelFlicker {
+    0%, 100% { opacity: 0; }
+    15% { opacity: 0.6; }
+    20% { opacity: 0; }
+    25% { opacity: 0.8; }
+    50% { opacity: 0.1; }
+    75% { opacity: 0.4; }
+  }
+
+  /* ── Main hero content ── */
+  .hero {
+    position: relative;
+    z-index: 10;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100vh;
+    text-align: center;
+    padding: 2rem;
+  }
+
+  /* ── Brand name ── */
+  .brand {
+    font-family: 'Darker Grotesque', sans-serif;
+    font-weight: 900;
+    font-size: clamp(3rem, 10vw, 8rem);
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    line-height: 0.9;
+    position: relative;
+    color: var(--fg);
+    opacity: 0;
+    animation: fadeInSlow 2.5s ease-out 0.3s forwards;
+  }
+
+  /* Chromatic aberration / ghosting on brand name */
+  .brand::before,
+  .brand::after {
+    content: 'Dead Pixel Design';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .brand::before {
+    color: var(--accent);
+    opacity: 0.3;
+    transform: translate(-2px, 1px);
+    filter: blur(1px);
+    animation: chromaShift 8s ease-in-out infinite;
+  }
+
+  .brand::after {
+    color: var(--accent-warm);
+    opacity: 0.2;
+    transform: translate(2px, -1px);
+    filter: blur(1px);
+    animation: chromaShift 8s ease-in-out infinite reverse;
+  }
+
+  @keyframes chromaShift {
+    0%, 100% { transform: translate(-2px, 1px); }
+    25% { transform: translate(1px, -1px); }
+    50% { transform: translate(-1px, 2px); }
+    75% { transform: translate(2px, 0px); }
+  }
+
+  /* ── Divider line ── */
+  .divider {
+    width: 0;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, var(--muted), transparent);
+    margin: 1.5rem 0;
+    animation: lineExpand 2s ease-out 1.5s forwards;
+  }
+
+  @keyframes lineExpand {
+    to { width: min(500px, 80vw); }
+  }
+
+  /* ── Tagline ── */
+  .tagline {
+    font-family: 'Space Mono', monospace;
+    font-weight: 400;
+    font-size: clamp(0.7rem, 1.8vw, 1rem);
+    letter-spacing: 0.08em;
+    color: var(--muted);
+    max-width: 600px;
+    line-height: 1.8;
+    opacity: 0;
+    animation: fadeInSlow 3s ease-out 2.5s forwards;
+    position: relative;
+  }
+
+  .tagline em {
+    font-style: normal;
+    color: var(--accent);
+    transition: color 3s ease;
+  }
+
+  /* ── Cursor blink after tagline ── */
+  .tagline::after {
+    content: '▮';
+    display: inline-block;
+    color: var(--accent);
+    opacity: 0;
+    animation: cursorBlink 1.2s step-end 4s infinite;
+    margin-left: 4px;
+    font-size: 0.8em;
+  }
+
+  @keyframes cursorBlink {
+    0%, 100% { opacity: 0; }
+    50% { opacity: 0.6; }
+  }
+
+  /* ── Scroll prompt ── */
+  .scroll-prompt {
+    position: fixed;
+    bottom: 2rem;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 10;
+    opacity: 0;
+    animation: fadeInSlow 2s ease-out 4s forwards;
+  }
+
+  .scroll-prompt span {
+    display: block;
+    font-family: 'Space Mono', monospace;
+    font-size: 0.6rem;
+    letter-spacing: 0.3em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 0.5rem;
+    text-align: center;
+  }
+
+  .scroll-line {
+    width: 1px;
+    height: 0;
+    background: var(--muted);
+    margin: 0 auto;
+    animation: scrollGrow 2s ease-in-out 4.5s infinite;
+  }
+
+  @keyframes scrollGrow {
+    0% { height: 0; opacity: 0.3; }
+    50% { height: 30px; opacity: 0.6; }
+    100% { height: 0; opacity: 0; }
+  }
+
+  /* ── VHS tracking glitch (occasional) ── */
+  .hero {
+    animation: vhsTracking 20s linear infinite;
+  }
+
+  @keyframes vhsTracking {
+    0%, 94%, 100% { transform: translateX(0); }
+    95% { transform: translateX(-2px); }
+    96% { transform: translateX(3px); }
+    97% { transform: translateX(-1px); }
+    98% { transform: translateX(0); }
+  }
+
+  /* ── Global fade-in ── */
+  @keyframes fadeInSlow {
+    from { opacity: 0; transform: translateY(8px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  /* ── Small services hint ── */
+  .services-hint {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.55rem;
+    letter-spacing: 0.25em;
+    text-transform: uppercase;
+    color: var(--muted);
+    opacity: 0;
+    margin-top: 2.5rem;
+    animation: fadeInSlow 2s ease-out 3.5s forwards;
+  }
+
+  .services-hint span {
+    margin: 0 0.8em;
+    opacity: 0.5;
+  }
+
+  .services-hint span.dot {
+    opacity: 0.3;
+  }
+
+  /* ── Responsive ── */
+  @media (max-width: 600px) {
+    .brand {
+      letter-spacing: 0.08em;
+    }
+    .tagline {
+      font-size: 0.75rem;
+      padding: 0 1rem;
+    }
+    .services-hint {
+      font-size: 0.5rem;
+    }
+    .services-hint span {
+      margin: 0 0.4em;
+    }
+  }
+</style>
+</head>
+<body>
+
+  <!-- Film grain -->
+  <div class="grain"></div>
+
+  <!-- Scanlines -->
+  <div class="scanlines"></div>
+
+  <!-- Background haze / light leaks -->
+  <div class="haze">
+    <div class="haze-blob"></div>
+    <div class="haze-blob"></div>
+    <div class="haze-blob"></div>
+  </div>
+
+  <!-- Scattered dead pixels -->
+  <div class="dead-pixels">
+    <div class="dead-pixel"></div>
+    <div class="dead-pixel"></div>
+    <div class="dead-pixel"></div>
+    <div class="dead-pixel"></div>
+    <div class="dead-pixel"></div>
+    <div class="dead-pixel"></div>
+    <div class="dead-pixel"></div>
+    <div class="dead-pixel"></div>
+    <div class="dead-pixel"></div>
+    <div class="dead-pixel"></div>
+    <div class="dead-pixel"></div>
+    <div class="dead-pixel"></div>
+  </div>
+
+  <!-- Hero content -->
+  <div class="hero">
+    <h1 class="brand">Dead Pixel<br>Design</h1>
+    <div class="divider"></div>
+    <p class="tagline">For those who stare at screens and <em>still feel something</em>.</p>
+    <div class="services-hint">
+      <span>Web Design</span>
+      <span class="dot">·</span>
+      <span>Social Media</span>
+      <span class="dot">·</span>
+      <span>Chatbots</span>
+      <span class="dot">·</span>
+      <span>Digital Strategy</span>
+    </div>
+  </div>
+
+  <!-- Scroll prompt -->
+  <div class="scroll-prompt">
+    <span>Scroll</span>
+    <div class="scroll-line"></div>
+  </div>
+
+</body>
+</html>
